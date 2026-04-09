@@ -9,54 +9,48 @@ import SwiftUI
 import PencilKit
 
 struct ContentView: View {
-    
-    @State private var notes: [MeetingNote] = MeetingNote.mockData
+    @EnvironmentObject var dataModelController: DataModelController
     
     var body: some View {
         NavigationStack {
-            List(notes) { note in
-                            NavigationLink(value: note) {
-                                MeetingNoteRow(note: note)
-                        }
+            List(dataModelController.notesList) { note in
+                NavigationLink(value: note) {
+                    MeetingNoteRow(note: note)
+                }
+            }
+            .navigationTitle("Meeting Notes")
+            .navigationDestination(for: MeetingNote.self) { note in
+                if let index = notes.firstIndex(of: note) {
+                    CanvasView(note: $notes[index])
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    Button(action: addNote) {
+                        Label("Add Note", systemImage: "plus")
                     }
                 }
             }
         }
     }
     
-    private func addItem() {
-        /*
+    private func addNote() {
         withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+            notes.append(MeetingNote(
+                title: "New Meeting",
+                date: Date(),
+                projectName: nil
+            ))
         }
-        */
     }
-
-    private func deleteItems(offsets: IndexSet) {
-        /*
+    
+    private func deleteNotes(offsets: IndexSet) {
         withAnimation {
-            for index in offsets {
-                modelContext.delete(notes[index])
-            }
+            notes.remove(atOffsets: offsets)
         }
-        */
-    }
-}
-     
-fileprivate struct NavigationViewWrapper<Content: View>: View {
-    let content: () -> Content
-
-    var body: some View {
-        content()
     }
 }
 
