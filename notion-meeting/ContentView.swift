@@ -13,15 +13,26 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            List(dataModelController.notesList) { note in
-                NavigationLink(value: note) {
-                    MeetingNoteRow(note: note)
+            List {
+                if dataModelController.notesList.isEmpty {
+                    ContentUnavailableView(
+                        "No Meeting Notes",
+                        systemImage: "note.text",
+                        description: Text("Tap + to create your first meeting note")
+                    )
+                } else {
+                    ForEach(dataModelController.notesList) { note in
+                        NavigationLink(value: note.id) {
+                            MeetingNoteRow(note: note)
+                        }
+                    }
+                    .onDelete(perform: deleteNotes)
                 }
             }
             .navigationTitle("Meeting Notes")
-            .navigationDestination(for: MeetingNote.self) { note in
-                if let index = notes.firstIndex(of: note) {
-                    CanvasView(note: $notes[index])
+            .navigationDestination(for: String.self) { id in
+                if let note = dataModelController.notes[id] {
+                    CanvasView(noteID: id)
                 }
             }
             .toolbar {
@@ -39,7 +50,7 @@ struct ContentView: View {
     
     private func addNote() {
         withAnimation {
-            notes.append(MeetingNote(
+            dataModelController.addNote(MeetingNote(
                 title: "New Meeting",
                 date: Date(),
                 projectName: nil
@@ -49,11 +60,13 @@ struct ContentView: View {
     
     private func deleteNotes(offsets: IndexSet) {
         withAnimation {
-            notes.remove(atOffsets: offsets)
+            offsets.map { dataModelController.notesList[$0] }
+                           .forEach { dataModelController.deleteNote($0) }
         }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(DataModelController())
 }

@@ -9,24 +9,27 @@ import SwiftUI
 import PencilKit
 
 struct CanvasView: View {
-    @Binding var note: MeetingNote
+    let noteID: String
+    @EnvironmentObject var dataModelController: DataModelController
     @State private var canvasView = PKCanvasView()
     @State private var toolPicker = PKToolPicker()
     
     var body: some View {
-        PKCanvasViewRepresentable(
-            drawing: $note.drawing,
-            canvasView: $canvasView,
-            toolPicker: toolPicker
-        )
-        .navigationTitle(note.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            showToolPicker()
-        }
-        .onDisappear {
-            hideToolPicker()
-            
+        if let note = dataModelController.notes[noteID] {
+            PKCanvasViewRepresentable(
+                drawing: .constant(note.drawing),
+                canvasView: $canvasView,
+                toolPicker: toolPicker
+            )
+            .navigationTitle(note.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                showToolPicker()
+            }
+            .onDisappear {
+                dataModelController.updateNote(id: noteID, drawing: note.drawing)
+                hideToolPicker()
+            }
         }
     }
     

@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct notion_meetingApp: App {
-    @StateObject private var dataModelController: DataModelController = .init()
+    @StateObject private var dataModelController: DataModelController = DataModelController()
     
     var body: some Scene {
         WindowGroup {
