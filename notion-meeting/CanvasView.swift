@@ -13,21 +13,30 @@ struct CanvasView: View {
     @EnvironmentObject var dataModelController: DataModelController
     @State private var canvasView = PKCanvasView()
     @State private var toolPicker = PKToolPicker()
+    @State private var drawing = PKDrawing()
+    @Environment(\.displayScale) var displayScale
     
     var body: some View {
-        if let note = dataModelController.notes[noteID] {
+        if let note = dataModelController.getNote(noteID) {
             PKCanvasViewRepresentable(
-                drawing: .constant(note.drawing),
+                drawing: $drawing,
                 canvasView: $canvasView,
                 toolPicker: toolPicker
             )
-            .navigationTitle(note.title)
+            .onChange(of: dataModelController.getNote(noteID)?.title) {
+                canvasView.becomeFirstResponder()
+            }
+            .navigationTitle(dataModelController.getTitleBinding(for: noteID))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
+                drawing = note.drawing
                 showToolPicker()
             }
             .onDisappear {
-                dataModelController.updateNote(id: noteID, drawing: note.drawing)
+                dataModelController.updateNote(
+                    id: noteID,
+                    drawing: drawing,
+                    displayScale: displayScale)
                 hideToolPicker()
             }
         }

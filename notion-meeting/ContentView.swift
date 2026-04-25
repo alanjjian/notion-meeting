@@ -10,6 +10,9 @@ import PencilKit
 
 struct ContentView: View {
     @EnvironmentObject var dataModelController: DataModelController
+    @State private var isRenaming = false
+    @State private var noteToRename: MeetingNote? = nil
+    @State private var newTitle = ""
     
     var body: some View {
         NavigationStack {
@@ -23,7 +26,17 @@ struct ContentView: View {
                 } else {
                     ForEach(dataModelController.notesList) { note in
                         NavigationLink(value: note.id) {
-                            MeetingNoteRow(note: note)
+                            MeetingNoteRow(noteID: note.id)
+                        }
+                        .swipeActions(edge: .leading) {
+                                Button {
+                                    noteToRename = note
+                                    newTitle = note.title
+                                    isRenaming = true
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                                .tint(.blue)
                         }
                     }
                     .onDelete(perform: deleteNotes)
@@ -31,7 +44,7 @@ struct ContentView: View {
             }
             .navigationTitle("Meeting Notes")
             .navigationDestination(for: String.self) { id in
-                if let note = dataModelController.notes[id] {
+                if let _ = dataModelController.getNote(id) {
                     CanvasView(noteID: id)
                 }
             }
@@ -44,6 +57,15 @@ struct ContentView: View {
                         Label("Add Note", systemImage: "plus")
                     }
                 }
+            }
+            .alert("Rename Note", isPresented: $isRenaming, presenting: noteToRename) { note in
+                TextField("Note title", text: $newTitle)
+                Button("Save") {
+                    dataModelController.renameNote(id: note.id, title: newTitle)
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: { note in
+                Text("Enter a new name for \"\(note.title)\"")
             }
         }
     }
